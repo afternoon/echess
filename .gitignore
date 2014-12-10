@@ -1,0 +1,6 @@
+.DS_Store
+*.sw[nop]
+ebin
+logs
+*.plt
+*.beam

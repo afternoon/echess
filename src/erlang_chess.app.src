@@ -1,0 +1,13 @@
+{application, erlang_chess, [
+    {description, "Core chess basics: types and rules"},
+    {vsn, "0.1.0"},
+    {id, "git"},
+    {modules, [
+        erlang_chess_game
+    ]},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]}
+]}.
