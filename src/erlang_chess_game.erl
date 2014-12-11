@@ -39,7 +39,7 @@
 %% @doc A game consists of a board, a list of moves and some flags.
 -type game() :: {board(), moves(), flags()}.
 
-%% Shortcut piece constructors
+%% Piece constructors
 wP() -> {pawn, white, []}.
 wN() -> {knight, white, []}.
 wB() -> {bishop, white, []}.
@@ -72,27 +72,20 @@ starting_board() ->
         bR(),  bN(),  bB(),  bQ(),  bK(),  bB(),  bN(),  bR()
     ].
 
+-spec move(_From, _To) -> move().
+move(From, To) -> {From, To}.
+
+-spec is_legal_move(_Game, _Move) -> boolean().
+is_legal_move(_Game, _Move) -> true.
+
 %% @doc Board operations.
-
-piece_at(Square, Board) -> empty.
-
-find(Name, Colour, Board) ->
-    undef.
-    % get index of piece in Board
-    % translate index to square name, e.g. e4
-
-square_name(1) -> a1;
-square_name(2) -> a2;
-square_name(64) -> h8.
-
-square_index(a1) -> 1;
-square_index(a2) -> 2;
-square_index(h8) -> 64.
 
 ranks([A,B,C,D,E,F,G,H]) ->
     [[A,B,C,D,E,F,G,H]];
 ranks([A,B,C,D,E,F,G,H|Tail]) ->
     [[A,B,C,D,E,F,G,H]|ranks(Tail)].
+
+%% @doc Render board.
 
 show_game({Board, _, _}) ->
     show_ranks(lists:reverse(ranks(Board))).

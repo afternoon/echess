@@ -23,3 +23,8 @@ show_game_test() ->
                "♜♞♝♛♚♝♞♜",
     Actual = erlang_chess_game:show_game(erlang_chess_game:new()),
     ?assertEqual(Expected, Actual).
+
+is_legal_move_test() ->
+    Game = erlang_chess_game:new(),
+    Move = erlang_chess_game:move(e2, e4),
+    ?assert(erlang_chess_game:is_legal_move(Game, Move)).
