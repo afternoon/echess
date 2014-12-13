@@ -1,4 +1,4 @@
--module(erlang_chess).
+-module(echess).
 
 -compile(export_all).
 

@@ -1,9 +1,9 @@
-{application, erlang_chess, [
+{application, echess, [
     {description, "Core chess basics: types and rules"},
     {vsn, "0.1.0"},
     {id, "git"},
     {modules, [
-        erlang_chess
+        echess
     ]},
     {registered, []},
     {applications, [

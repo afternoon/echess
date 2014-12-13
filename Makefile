@@ -1,2 +1,2 @@
-PROJECT = erlang_chess
+PROJECT = echess
 include erlang.mk
