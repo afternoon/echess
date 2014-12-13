@@ -97,6 +97,9 @@ is_legal_move_test() ->
     % ?assertNot(echess:is_legal_move(Game, echess:move(d4, d6))).
 
 fen_test() ->
+    ExpectedGame1 = echess:new(),
+    ActualGame1 = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+    ?assertEqual(ExpectedGame1, ActualGame1),
     Board = [
         empty, empty, empty, echess:wQ(), empty, echess:wR(), echess:wK(), empty,
         echess:wP(), empty, echess:wP(), empty, empty, echess:wP(), echess:wP(), echess:wP(),
@@ -107,6 +110,6 @@ fen_test() ->
         echess:bP(), echess:wR(), empty, echess:bN(), echess:bP(), echess:bP(), echess:bP(), echess:bP(),
         echess:wN(), empty, empty, echess:bK(), empty, echess:bB(), empty, echess:bR()
     ],
-    ExpectedGame = echess:game(Board),
-    ActualGame = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
-    ?assertEqual(ExpectedGame, ActualGame).
+    ExpectedGame2 = echess:game(Board),
+    ActualGame2 = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
+    ?assertEqual(ExpectedGame2, ActualGame2).
