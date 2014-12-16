@@ -64,8 +64,8 @@ enemy_occupied_test() ->
 
 is_valid_move_green_pawn_test() ->
     Game = echess:new(),
-    ?assert(echess:is_valid_move_for_piece(Game, echess:wP(), e2, e4)),
     ?assert(echess:is_valid_move_for_piece(Game, echess:wP(), e2, e3)),
+    ?assert(echess:is_valid_move_for_piece(Game, echess:wP(), e2, e4)),
     ?assert(echess:is_valid_move_for_piece(Game, echess:bP(), h7, h6)),
     ?assert(echess:is_valid_move_for_piece(Game, echess:bP(), h7, h5)).
 
@@ -84,17 +84,6 @@ is_valid_move_pawn_capture_test() ->
     ?assert(echess:is_valid_move_for_piece(Game, Piece, b6, a7)),
     ?assert(echess:is_valid_move_for_piece(Game, Piece, b6, b7)),
     ?assertNot(echess:is_valid_move_for_piece(Game, Piece, f5, e6)).
-
-is_legal_move_test() ->
-    Game = echess:new(),
-    % pawn
-    ?assert(echess:is_legal_move(Game, echess:move(e2, e4))).
-    % knight
-    % ?assert(echess:is_legal_move(Game, echess:move(b1, c3))),
-    % % pawn push too far
-    % ?assertNot(echess:is_legal_move(Game, echess:move(e2, e5))),
-    % % blocked piece
-    % ?assertNot(echess:is_legal_move(Game, echess:move(d4, d6))).
 
 fen_starting_position_test() ->
     ExpectedBoard = echess:starting_position(),
@@ -120,3 +109,28 @@ fen_current_player_test() ->
     ?assertEqual(white, echess:current_player(WhiteGame)),
     BlackGame = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
     ?assertEqual(black, echess:current_player(BlackGame)).
+
+pawn_should_push_one_or_two_spaces_test() ->
+    Game = echess:new(),
+    % pawn can push
+    ?assert(echess:is_legal_move(Game, echess:move(e2, e3))),
+    % pawn can double push
+    ?assert(echess:is_legal_move(Game, echess:move(e2, e4))),
+    % pawn can't move 3 squares
+    ?assertNot(echess:is_legal_move(Game, echess:move(e2, e5))).
+
+moved_pawn_should_not_be_able_to_double_push_test() ->
+    Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR w KQkq - 0 1"),
+    ?assert(echess:is_legal_move(Game, echess:move(e3, e4))),
+    ?assertNot(echess:is_legal_move(Game, echess:move(e3, e5))).
+
+%% TODO
+%% - pawn can take
+%% - pawn can't move diagonally unless taking
+%% - pawn can take en passant - relies on previous move!
+%% - knight
+%% - bishop
+%% - rook
+%% - queen
+%% - king
+%% - do any pieces block the move?

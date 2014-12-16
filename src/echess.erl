@@ -196,8 +196,11 @@ is_valid_move(Game, From, To) ->
     Piece = piece_at(Game, From),
     is_valid_move_for_piece(Game, Piece, From, To).
 
-piece_has_moved({piece, _, _, Flags}) ->
-    proplists:get_value(moved, Flags) =:= true.
+pawn_has_moved(Colour, Square) ->
+    case Colour of
+        white -> not lists:member(Square, [a2, b2, c2, d2, e2, f2, g2, h2]);
+        black -> not lists:member(Square, [a7, b7, c7, d7, e7, f7, g7, h7])
+    end.
 
 %% @doc Determine if this piece can make this move, e.g. a pawn pushing forward
 %% one or 2 spaces, a knight making an L-shaped move. 2D moves map to 1D moves:
@@ -211,28 +214,18 @@ piece_has_moved({piece, _, _, Flags}) ->
 %%
 %% Assumes that both From and To are valid board squares.
 %%
-is_valid_move_for_piece(Game, {piece, pawn, white, _} = Piece, From, To) ->
+is_valid_move_for_piece(Game, {piece, pawn, white, _}, From, To) ->
     Distance = distance(From, To),
     (Distance =:= 8)
     or (enemy_occupied(Game, To) and ((Distance =:= 7) or (Distance =:= 9)))
-    or (not piece_has_moved(Piece) and (Distance =:= 16));
-is_valid_move_for_piece(Game, {piece, pawn, black, _} = Piece, From, To) ->
+    or (not pawn_has_moved(white, From) and (Distance =:= 16));
+is_valid_move_for_piece(Game, {piece, pawn, black, _}, From, To) ->
     Distance = distance(From, To),
     (Distance =:= -8)
     or (enemy_occupied(Game, To) and ((Distance =:= -7) or (Distance =:= -9)))
-    or (not piece_has_moved(Piece) and (Distance =:= -16));
+    or (not pawn_has_moved(black, From) and (Distance =:= -16));
 is_valid_move_for_piece(_, _, _, _) ->
     false.
-
-%% TODO
-%% - pawn capture
-%% - en passant
-%% - knight
-%% - bishop
-%% - rook
-%% - queen
-%% - king
-%% - do any pieces block the move?
 
 -spec distance(square(), square()) -> number().
 distance(From, To) ->
