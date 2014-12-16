@@ -42,11 +42,12 @@
 -type moves() :: [move()].
 
 %% @doc A board is a list of 64 elements, either a piece %% or the atom `empty`.
-%% The first square (a1, head of the list) is the bottom left of the board.
+%% The first square (a1, head of the list) is the bottom left of the board as
+%% viewed by white.
 -type board() :: [piece() | empty, ...].
 
 %% @doc A game consists of a board, a list of moves and some flags.
--type game() :: {game, board(), moves(), flags()}.
+-type game() :: {game, board(), flags(), moves()}.
 
 %%
 %% Constructors
@@ -54,17 +55,22 @@
 
 %% @doc Create a brand new game in the starting position.
 -spec new() -> game().
-new() -> game(starting_board()).
+new() -> game(starting_position()).
 
 %% @doc Create a game with the specified board.
 -spec game(board()) -> game().
 game(Board) ->
-    {game, Board, [], []}.
+    game(Board, flags()).
+
+%% @doc Create a game with the specified board and flags.
+-spec game(board(), flags()) -> game().
+game(Board, Flags) ->
+    {game, Board, Flags, []}.
 
 %% @doc Create a board in the standard starting position.
 %% N.B. board coordinates start at the bottom left.
--spec starting_board() -> board().
-starting_board() ->
+-spec starting_position() -> board().
+starting_position() ->
     [
         wR(),  wN(),  wB(),  wQ(),  wK(),  wB(),  wN(),  wR(),
         wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),
@@ -109,11 +115,8 @@ move(From, To) -> {move, From, To}.
 %% Game operations
 %%
 
-current_player({game, _, Moves, _}) ->
-    if
-        length(Moves) rem 2 =:= 0 -> white;
-        true -> black
-	end.
+current_player({game, _, Flags, _}) ->
+    proplists:get_value(current_player, Flags, white).
 
 %%
 %% Board operations
@@ -287,9 +290,11 @@ show_piece(_) -> $?.
 
 fen(Fen) ->
     FenTokens = string:tokens(Fen, " "),
-    [FenBoard, _ActiveColour, _Castling, _EnPassant, _HalfMoveClock, _FullMoveClock] = FenTokens,
+    [FenBoard, CurrentPlayerShort, _Castling, _EnPassant, _HalfMoveClock, _FullMoveClock] = FenTokens,
     Board = lists:flatten(lists:reverse(string:tokens(FenBoard, "/"))),
-    game(fen_board(Board)).
+    CurrentPlayer = case CurrentPlayerShort of "w" -> white; "b" -> black end,
+    Flags = [{current_player, CurrentPlayer}],
+    game(fen_board(Board), Flags).
 
 fen_board([]) -> [];
 fen_board([$P|T]) -> [wP()|fen_board(T)];
