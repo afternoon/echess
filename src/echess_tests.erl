@@ -131,7 +131,6 @@ pawn_should_be_able_to_take_test() ->
     ?assert(echess:is_legal_move(BlackGame, echess:move(d5, e4))).
 
 %% TODO
-%% - pawn can take
 %% - pawn can't move diagonally unless taking
 %% - pawn can take en passant - relies on previous move!
 %% - knight
