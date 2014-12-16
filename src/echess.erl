@@ -1,5 +1,6 @@
 -module(echess).
 
+% TODO reduce exports to minimal interface
 -compile(export_all).
 
 -define(SQUARES, [a1, b1, c1, d1, e1, f1, g1, h1,
@@ -34,6 +35,7 @@
 %% @doc A piece is a tuple of the piece type, colour and some flags, e.g.
 %% whether a king has moved yet (so the availability of castling can be
 %% determined), or if a pawn has yet pushed 2 squares.
+%% TODO remove flags, be consistent with FEN
 -type piece() :: {piece, piece_class(), colour(), flags()}.
 
 %% @doc Moves are implemented using the coordinate system split into a tuple of
@@ -47,6 +49,7 @@
 -type board() :: [piece() | empty, ...].
 
 %% @doc A game consists of a board, a list of moves and some flags.
+%% TODO define record, be consistent with FEN
 -type game() :: {game, board(), flags(), moves()}.
 
 %%
@@ -152,13 +155,15 @@ piece_colour(_) ->
 piece_index({game, Board, _, _}, Piece) ->
     piece_index(Board, Piece, 1).
 
-piece_index([], _, _) ->
-    not_found;
 piece_index([{piece, Class, Colour, _}|Tail], Piece, Index) ->
     case Piece of
         {piece, Class, Colour, _} -> Index;
         _ -> piece_index(Tail, Piece, Index+1)
-    end.
+    end;
+piece_index([empty|Tail], Piece, Index) ->
+    piece_index(Tail, Piece, Index+1);
+piece_index([], _, _) ->
+    not_found.
 
 piece_square(Game, Piece) ->
     index_square(piece_index(Game, Piece)).
@@ -167,6 +172,9 @@ piece_square(Game, Piece) ->
 %% Moves
 %%
 
+% TODO is_legal_move(game(), square(), square())?
+% move() not used elsewhere
+% or keep so move can parse algebraic notation?
 -spec is_legal_move(game(), move()) -> boolean().
 is_legal_move(Game, {move, From, To}) ->
     valid_square(From)
@@ -222,8 +230,8 @@ is_valid_move_for_piece(Game, {piece, pawn, white, _}, From, To) ->
 is_valid_move_for_piece(Game, {piece, pawn, black, _}, From, To) ->
     Distance = distance(From, To),
     (Distance =:= -8)
-    or (enemy_occupied(Game, To) and ((Distance =:= -7) or (Distance =:= -9)))
-    or (not pawn_has_moved(black, From) and (Distance =:= -16));
+    or (((Distance =:= -7) or (Distance =:= -9)) and enemy_occupied(Game, To))
+    or ((Distance =:= -16) and not pawn_has_moved(black, From));
 is_valid_move_for_piece(_, _, _, _) ->
     false.
 
@@ -232,14 +240,14 @@ distance(From, To) ->
     square_index(To) - square_index(From).
 
 current_player_in_check({game, Board, _, _} = Game) ->
-    Player = current_player(Game),
-    KingSquare = piece_square(Game, piece(king, Player)),
-    lists:any(fun(P) -> is_attacking(Game, KingSquare, P) end, Board).
+    Colour = current_player(Game),
+    KingSquare = piece_square(Game, piece(king, Colour)),
+    lists:any(fun(P) -> is_attacking(Game, P, KingSquare) end, Board).
 
-is_attacking(_Game, Target, Attacker) ->
-    (Target =/= Attacker)
-    and (piece_colour(Target) =/= piece_colour(Attacker))
-    %% other stuff...
+is_attacking(_Game, Piece, Target) ->
+    (Piece =/= Target)
+    and (piece_colour(Piece) =/= piece_colour(Target))
+    %% TODO other stuff...
     and false.
 
 %%

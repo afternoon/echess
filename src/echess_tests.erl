@@ -124,6 +124,12 @@ moved_pawn_should_not_be_able_to_double_push_test() ->
     ?assert(echess:is_legal_move(Game, echess:move(e3, e4))),
     ?assertNot(echess:is_legal_move(Game, echess:move(e3, e5))).
 
+pawn_should_be_able_to_take_test() ->
+    WhiteGame = echess:fen("rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2"),
+    ?assert(echess:is_legal_move(WhiteGame, echess:move(e4, d5))),
+    BlackGame = echess:fen("rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2"),
+    ?assert(echess:is_legal_move(BlackGame, echess:move(d5, e4))).
+
 %% TODO
 %% - pawn can take
 %% - pawn can't move diagonally unless taking
