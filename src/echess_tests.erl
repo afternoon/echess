@@ -35,7 +35,7 @@ piece_at_test() ->
 
 current_player_test() ->
     Game = echess:new(),
-    ?assertEqual(white, echess:current_player(Game)).
+    ?assertEqual(white, echess:game_current_player(Game)).
 
 valid_square_test() ->
     ?assert(echess:valid_square(a1)),
@@ -62,33 +62,10 @@ enemy_occupied_test() ->
     ?assertNot(echess:enemy_occupied(Game, a3)),
     ?assertNot(echess:enemy_occupied(Game, a1)).
 
-is_valid_move_green_pawn_test() ->
-    Game = echess:new(),
-    ?assert(echess:is_valid_move_for_piece(Game, echess:wP(), e2, e3)),
-    ?assert(echess:is_valid_move_for_piece(Game, echess:wP(), e2, e4)),
-    ?assert(echess:is_valid_move_for_piece(Game, echess:bP(), h7, h6)),
-    ?assert(echess:is_valid_move_for_piece(Game, echess:bP(), h7, h5)).
-
-is_valid_move_moved_pawn_test() ->
-    Game = echess:new(),
-    WPiece = echess:piece(pawn, white, [{moved, true}]),
-    ?assert(echess:is_valid_move_for_piece(Game, WPiece, e3, e4)),
-    ?assertNot(echess:is_valid_move_for_piece(Game, WPiece, e3, e5)),
-    BPiece = echess:piece(pawn, black, [{moved, true}]),
-    ?assert(echess:is_valid_move_for_piece(Game, BPiece, h6, h5)),
-    ?assertNot(echess:is_valid_move_for_piece(Game, BPiece, h6, h4)).
-
-is_valid_move_pawn_capture_test() ->
-    Game = echess:new(),
-    Piece = echess:piece(pawn, white, [{moved, true}]),
-    ?assert(echess:is_valid_move_for_piece(Game, Piece, b6, a7)),
-    ?assert(echess:is_valid_move_for_piece(Game, Piece, b6, b7)),
-    ?assertNot(echess:is_valid_move_for_piece(Game, Piece, f5, e6)).
-
 fen_starting_position_test() ->
     ExpectedBoard = echess:starting_position(),
-    {game, ActualBoard, _, _} = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
-    ?assertEqual(ExpectedBoard, ActualBoard).
+    Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+    ?assertEqual(ExpectedBoard, echess:game_board(Game)).
 
 fen_beppel_game_test() ->
     ExpectedBoard = [
@@ -101,14 +78,14 @@ fen_beppel_game_test() ->
         echess:bP(), echess:wR(), empty, echess:bN(), echess:bP(), echess:bP(), echess:bP(), echess:bP(),
         echess:wN(), empty, empty, echess:bK(), empty, echess:bB(), empty, echess:bR()
     ],
-    {game, ActualBoard, _, _} = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
-    ?assertEqual(ExpectedBoard, ActualBoard).
+    Game = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
+    ?assertEqual(ExpectedBoard, echess:game_board(Game)).
 
 fen_current_player_test() ->
     WhiteGame = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
-    ?assertEqual(white, echess:current_player(WhiteGame)),
+    ?assertEqual(white, echess:game_current_player(WhiteGame)),
     BlackGame = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
-    ?assertEqual(black, echess:current_player(BlackGame)).
+    ?assertEqual(black, echess:game_current_player(BlackGame)).
 
 pawn_should_push_one_or_two_spaces_test() ->
     Game = echess:new(),
