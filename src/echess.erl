@@ -37,6 +37,7 @@
 -type move() :: {move, From :: square(), To :: square()}.
 -type moves() :: [move()].
 
+%% @doc Represent which castling options are available for the current game.
 -record(castling, {white_kingside=true :: boolean(),
                    white_queenside=true :: boolean(),
                    black_kingside=true :: boolean(),
@@ -44,12 +45,14 @@
 
 -type castling() :: #castling{}.
 
-%% @doc A board is a list of 64 elements, either a piece %% or the atom `empty`.
-%% The first square (a1, head of the list) is the bottom left of the board as
+%% @doc A board is a list of 64 pieces (empty is a pseudo-piece representing no
+%% piece). The first square in the list (a1) is the bottom left of the board as
 %% viewed by white.
 -type board() :: [piece()].
 
-%% @doc A game consists of a board, a list of moves and some flags.
+%% @doc Game follows the data model of FEN, consisting of a board, metadata
+%% about castling, en passant target square, half move clock for detecting
+%% repeated moves and a full move number. We also store a list of moves.
 -record(game, {board=[] :: board(),
                current_player=white :: colour(),
                castling=#castling{} :: castling(),
@@ -73,32 +76,39 @@ new() -> game(starting_position()).
 game(Board) ->
     #game{board=Board}.
 
-%% @doc Create a game with the specified board and flags.
+%% @doc Create a game with the specified board and options.
 -spec game(board(), colour(), castling(), square(), non_neg_integer(),
            pos_integer()) -> game().
 game(Board, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock,
      FullMoveNumber) ->
+    game(Board, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock,
+         FullMoveNumber, []).
+
+%% @doc Create a game with the specified board, options .
+-spec game(board(), colour(), castling(), square(), non_neg_integer(),
+           pos_integer(), moves()) -> game().
+game(Board, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock,
+     FullMoveNumber, Moves) ->
     #game{board=Board,
           current_player=CurrentPlayer,
           castling=Castling,
           en_passant_square=EnPassantSquare,
           half_move_clock=HalfMoveClock,
-          full_move_number=FullMoveNumber}.
+          full_move_number=FullMoveNumber,
+          moves=Moves}.
 
 %% @doc Create a board in the standard starting position.
 %% N.B. board coordinates start at the bottom left.
 -spec starting_position() -> board().
 starting_position() ->
-    [
-        wR(),  wN(),  wB(),  wQ(),  wK(),  wB(),  wN(),  wR(),
-        wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        empty, empty, empty, empty, empty, empty, empty, empty,
-        bP(),  bP(),  bP(),  bP(),  bP(),  bP(),  bP(),  bP(),
-        bR(),  bN(),  bB(),  bQ(),  bK(),  bB(),  bN(),  bR()
-    ].
+    [wR(),  wN(),  wB(),  wQ(),  wK(),  wB(),  wN(),  wR(),
+     wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),
+     empty, empty, empty, empty, empty, empty, empty, empty,
+     empty, empty, empty, empty, empty, empty, empty, empty,
+     empty, empty, empty, empty, empty, empty, empty, empty,
+     empty, empty, empty, empty, empty, empty, empty, empty,
+     bP(),  bP(),  bP(),  bP(),  bP(),  bP(),  bP(),  bP(),
+     bR(),  bN(),  bB(),  bQ(),  bK(),  bB(),  bN(),  bR()].
 
 wP() -> piece(pawn, white).
 wN() -> piece(knight, white).
