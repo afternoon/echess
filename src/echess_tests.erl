@@ -2,12 +2,15 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
+-define(assert_legal_move(Game, From, To), ?assert(echess:is_legal_move(Game, echess:move(From, To)))).
+-define(assert_not_legal_move(Game, From, To), ?assertNot(echess:is_legal_move(Game, echess:move(From, To)))).
+
 show_piece_test() ->
     ?assertEqual($♔, echess:show_piece(echess:bK())).
 
-ranks_test() ->
+board_ranks_test() ->
     Expected = [lists:seq(A, A+7) || A <- lists:seq(1, 64, 8)],
-    Actual = echess:ranks(lists:seq(1, 64)),
+    Actual = echess:board_ranks(lists:seq(1, 64)),
     ?assertEqual(Expected, Actual).
 
 show_game_test() ->
@@ -90,22 +93,40 @@ fen_current_player_test() ->
 pawn_should_push_one_or_two_spaces_test() ->
     Game = echess:new(),
     % pawn can push
-    ?assert(echess:is_legal_move(Game, echess:move(e2, e3))),
+    ?assert_legal_move(Game, e2, e3),
     % pawn can double push
-    ?assert(echess:is_legal_move(Game, echess:move(e2, e4))),
+    ?assert_legal_move(Game, e2, e4),
     % pawn can't move 3 squares
-    ?assertNot(echess:is_legal_move(Game, echess:move(e2, e5))).
+    ?assert_not_legal_move(Game, e2, e5).
 
 moved_pawn_should_not_be_able_to_double_push_test() ->
     Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR w KQkq - 0 1"),
-    ?assert(echess:is_legal_move(Game, echess:move(e3, e4))),
-    ?assertNot(echess:is_legal_move(Game, echess:move(e3, e5))).
+    ?assert_legal_move(Game, e3, e4),
+    ?assert_not_legal_move(Game, e3, e5).
 
 pawn_should_be_able_to_take_test() ->
     WhiteGame = echess:fen("rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2"),
-    ?assert(echess:is_legal_move(WhiteGame, echess:move(e4, d5))),
+    ?assert_legal_move(WhiteGame, e4, d5),
     BlackGame = echess:fen("rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2"),
-    ?assert(echess:is_legal_move(BlackGame, echess:move(d5, e4))).
+    ?assert_legal_move(BlackGame, d5, e4).
+
+rook_should_be_able_to_move_laterally_test() ->
+    Game = echess:fen("8/8/8/3R4/4r3/8/8/8 w KQkq - 0 1"),
+    ?assert_legal_move(Game, d5, d8),
+    ?assert_legal_move(Game, d5, d1),
+    ?assert_legal_move(Game, d5, a5),
+    ?assert_legal_move(Game, d5, h5),
+    BlackGame = echess:fen("8/8/8/3R4/4r3/8/8/8 b KQkq - 0 1"),
+    ?assert_legal_move(BlackGame, e4, e8).
+
+rook_should_not_be_able_to_move_diagonally_test() ->
+    Game = echess:fen("8/8/8/3R4/4r3/8/8/8 w KQkq - 0 1"),
+    ?assert_not_legal_move(Game, d5, g8),
+    ?assert_not_legal_move(Game, e4, d5).
+
+rook_should_not_be_able_to_move_in_knight_pattern_test() ->
+    Game = echess:fen("8/8/8/3R4/4r3/8/8/8 w KQkq - 0 1"),
+    ?assert_not_legal_move(Game, d5, f7).
 
 %% TODO
 %% - pawn can't move diagonally unless taking

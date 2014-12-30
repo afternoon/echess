@@ -12,6 +12,9 @@
                   a7, b7, c7, d7, e7, f7, g7, h7,
                   a8, b8, c8, d8, e8, f8, g8, h8]).
 
+%% @doc File names.
+-type file() :: a | b | c | d | e | f | g | h.
+
 %% @doc Square names (from coordinate/algebraic notations).
 -type square() :: a8 | b8 | c8 | d8 | e8 | f8 | g8 | h8 |
                   a7 | b7 | c7 | d7 | e7 | f7 | g7 | h7 |
@@ -129,7 +132,11 @@ piece(Class, Colour) -> {piece, Class, Colour}.
 
 %% @doc Move constructor.
 -spec move(_From, _To) -> move().
-move(From, To) -> {move, From, To}.
+move(From, To) ->
+    case (From =/= To) and valid_square(From) and valid_square(To) of
+        true -> {move, From, To};
+        false -> badarg
+    end.
 
 %%
 %% Game accessors
@@ -147,10 +154,10 @@ game_board(#game{board=Board}) ->
 %% Board operations
 %%
 
-ranks([A,B,C,D,E,F,G,H]) ->
+board_ranks([A,B,C,D,E,F,G,H]) ->
     [[A,B,C,D,E,F,G,H]];
-ranks([A,B,C,D,E,F,G,H|Tail]) ->
-    [[A,B,C,D,E,F,G,H]|ranks(Tail)].
+board_ranks([A,B,C,D,E,F,G,H|Tail]) ->
+    [[A,B,C,D,E,F,G,H]|board_ranks(Tail)].
 
 %% @doc Get the numerical index of a square.
 -spec square_index(square()) -> pos_integer().
@@ -160,6 +167,8 @@ square_index(Square) ->
 
 %% @doc Get the square name for a numerical square index.
 -spec index_square(pos_integer()) -> square().
+index_square(not_found) ->
+    not_found;
 index_square(Index) ->
     lists:nth(Index, ?SQUARES).
 
@@ -190,13 +199,144 @@ piece_index([], _, _) ->
 piece_square(Game, Piece) ->
     index_square(piece_index(Game, Piece)).
 
+%% @doc Rank of a square.
+-spec rank(square()) -> non_neg_integer().
+rank(a1) -> 1;
+rank(b1) -> 1;
+rank(c1) -> 1;
+rank(d1) -> 1;
+rank(e1) -> 1;
+rank(f1) -> 1;
+rank(g1) -> 1;
+rank(h1) -> 1;
+rank(a2) -> 2;
+rank(b2) -> 2;
+rank(c2) -> 2;
+rank(d2) -> 2;
+rank(e2) -> 2;
+rank(f2) -> 2;
+rank(g2) -> 2;
+rank(h2) -> 2;
+rank(a3) -> 3;
+rank(b3) -> 3;
+rank(c3) -> 3;
+rank(d3) -> 3;
+rank(e3) -> 3;
+rank(f3) -> 3;
+rank(g3) -> 3;
+rank(h3) -> 3;
+rank(a4) -> 4;
+rank(b4) -> 4;
+rank(c4) -> 4;
+rank(d4) -> 4;
+rank(e4) -> 4;
+rank(f4) -> 4;
+rank(g4) -> 4;
+rank(h4) -> 4;
+rank(a5) -> 5;
+rank(b5) -> 5;
+rank(c5) -> 5;
+rank(d5) -> 5;
+rank(e5) -> 5;
+rank(f5) -> 5;
+rank(g5) -> 5;
+rank(h5) -> 5;
+rank(a6) -> 6;
+rank(b6) -> 6;
+rank(c6) -> 6;
+rank(d6) -> 6;
+rank(e6) -> 6;
+rank(f6) -> 6;
+rank(g6) -> 6;
+rank(h6) -> 6;
+rank(a7) -> 7;
+rank(b7) -> 7;
+rank(c7) -> 7;
+rank(d7) -> 7;
+rank(e7) -> 7;
+rank(f7) -> 7;
+rank(g7) -> 7;
+rank(h7) -> 7;
+rank(a8) -> 8;
+rank(b8) -> 8;
+rank(c8) -> 8;
+rank(d8) -> 8;
+rank(e8) -> 8;
+rank(f8) -> 8;
+rank(g8) -> 8;
+rank(h8) -> 8.
+
+%% @doc File of a square.
+-spec file(square()) -> file().
+file(a1) -> a;
+file(b1) -> b;
+file(c1) -> c;
+file(d1) -> d;
+file(e1) -> e;
+file(f1) -> f;
+file(g1) -> g;
+file(h1) -> h;
+file(a2) -> a;
+file(b2) -> b;
+file(c2) -> c;
+file(d2) -> d;
+file(e2) -> e;
+file(f2) -> f;
+file(g2) -> g;
+file(h2) -> h;
+file(a3) -> a;
+file(b3) -> b;
+file(c3) -> c;
+file(d3) -> d;
+file(e3) -> e;
+file(f3) -> f;
+file(g3) -> g;
+file(h3) -> h;
+file(a4) -> a;
+file(b4) -> b;
+file(c4) -> c;
+file(d4) -> d;
+file(e4) -> e;
+file(f4) -> f;
+file(g4) -> g;
+file(h4) -> h;
+file(a5) -> a;
+file(b5) -> b;
+file(c5) -> c;
+file(d5) -> d;
+file(e5) -> e;
+file(f5) -> f;
+file(g5) -> g;
+file(h5) -> h;
+file(a6) -> a;
+file(b6) -> b;
+file(c6) -> c;
+file(d6) -> d;
+file(e6) -> e;
+file(f6) -> f;
+file(g6) -> g;
+file(h6) -> h;
+file(a7) -> a;
+file(b7) -> b;
+file(c7) -> c;
+file(d7) -> d;
+file(e7) -> e;
+file(f7) -> f;
+file(g7) -> g;
+file(h7) -> h;
+file(a8) -> a;
+file(b8) -> b;
+file(c8) -> c;
+file(d8) -> d;
+file(e8) -> e;
+file(f8) -> f;
+file(g8) -> g;
+file(h8) -> h.
+
 %%
 %% Moves
 %%
 
-% TODO is_legal_move(game(), square(), square())?
-% move() not used elsewhere
-% or keep so move can parse algebraic notation?
 -spec is_legal_move(game(), move()) -> boolean().
 is_legal_move(Game, {move, From, To}) ->
     valid_square(From)
@@ -228,8 +368,8 @@ is_valid_move(Game, From, To) ->
 
 pawn_has_moved(Colour, Square) ->
     case Colour of
-        white -> not lists:member(Square, [a2, b2, c2, d2, e2, f2, g2, h2]);
-        black -> not lists:member(Square, [a7, b7, c7, d7, e7, f7, g7, h7])
+        white -> rank(Square) =/= 2;
+        black -> rank(Square) =/= 7
     end.
 
 %% @doc Determine if this piece can make this move, e.g. a pawn pushing forward
@@ -254,17 +394,32 @@ is_valid_move_for_piece(Game, {piece, pawn, black}, From, To) ->
     (Distance =:= -8)
     or (((Distance =:= -7) or (Distance =:= -9)) and enemy_occupied(Game, To))
     or ((Distance =:= -16) and not pawn_has_moved(black, From));
-is_valid_move_for_piece(_, _, _, _) ->
+is_valid_move_for_piece(_Game, {piece, rook, _Colour}, From, To) ->
+    is_lateral(From, To);
+is_valid_move_for_piece(_Game, _Piece, _From, _To) ->
     false.
 
 -spec distance(square(), square()) -> integer().
 distance(From, To) ->
     square_index(To) - square_index(From).
 
+is_lateral(From, To) ->
+    is_horiz(From, To) or is_vert(From, To).
+
+is_horiz(From, To) ->
+    rank(From) =:= rank(To).
+
+is_vert(From, To) ->
+    file(From) =:= file(To).
+
 current_player_in_check(#game{board=Board} = Game) ->
     Colour = game_current_player(Game),
-    KingSquare = piece_square(Game, piece(king, Colour)),
-    lists:any(fun(P) -> is_attacking(Game, P, KingSquare) end, Board).
+    case piece_square(Game, piece(king, Colour)) of
+        not_found ->
+            false;
+        KingSquare ->
+            lists:any(fun(P) -> is_attacking(Game, P, KingSquare) end, Board)
+    end.
 
 is_attacking(_Game, Piece, Target) ->
     (Piece =/= Target)
@@ -283,7 +438,7 @@ show_game(#game{board=Board}) ->
 
 -spec show_board(board()) -> string().
 show_board(Board) ->
-    show_ranks(lists:reverse(ranks(Board))).
+    show_ranks(lists:reverse(board_ranks(Board))).
 
 show_ranks(Ranks) ->
     string:join([show_rank(R) || R <- Ranks], "\n").
