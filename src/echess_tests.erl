@@ -74,6 +74,11 @@ fen_starting_position_test() ->
     Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"),
     ?assertEqual(ExpectedBoard, echess:game_board(Game)).
 
+fen_empty_test() ->
+    ExpectedBoard = [empty || I <- lists:seq(1, 64)],
+    Game = echess:fen("8/8/8/8/8/8/8/8"),
+    ?assertEqual(ExpectedBoard, echess:game_board(Game)).
+
 fen_beppel_game_test() ->
     ExpectedBoard = [
         empty, empty, empty, echess:wQ(), empty, echess:wR(), echess:wK(), empty,
