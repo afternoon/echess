@@ -147,16 +147,15 @@ rook_should_not_be_able_to_move_if_blocked_test() ->
     HorizBlockGame = echess:fen("R2R3r/8/8/8/8/8/8/8"),
     ?assert_not_legal_move(HorizBlockGame, a8, h8).
 
-% bishop_should_be_able_to_move_diagonally_test() ->
-%     Game = echess:fen("8/8/8/8/3B4/8/5b2/8"),
-%     ?assert_legal_move(Game, d4, a1),
-%     ?assert_legal_move(Game, d4, a7),
-%     ?assert_legal_move(Game, d4, h8),
-%     ?assert_legal_move(Game, d4, e3),
-%     ?assert_not_legal_move(Game, d4, g1).
+bishop_should_be_able_to_move_diagonally_test() ->
+    Game = echess:fen("8/8/8/8/3B4/8/5b2/8"),
+    ?assert_legal_move(Game, d4, a1),
+    ?assert_legal_move(Game, d4, a7),
+    ?assert_legal_move(Game, d4, h8),
+    ?assert_legal_move(Game, d4, e3),
+    ?assert_not_legal_move(Game, d4, g1).
 
 %% TODO
-%% - bishop
 %% - queen
 %% - king
 %% - knight

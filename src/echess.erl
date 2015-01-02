@@ -12,6 +12,13 @@
                   a7, b7, c7, d7, e7, f7, g7, h7,
                   a8, b8, c8, d8, e8, f8, g8, h8]).
 
+-define(HORIZ_SLOPE, 1).
+-define(VERT_SLOPE, 8).
+-define(NE_DIAG_SLOPE, 9).
+-define(SE_DIAG_SLOPE, -7).
+-define(SW_DIAG_SLOPE, -9).
+-define(NW_DIAG_SLOPE, 7).
+
 %% @doc File names.
 -type file() :: a | b | c | d | e | f | g | h.
 
@@ -387,14 +394,16 @@ pawn_has_moved(Colour, Square) ->
 is_valid_move_for_piece(Game, {piece, pawn, Colour}, From, To) ->
     Dir = case Colour of white -> 1; black -> -1 end,
     Distance = distance(From, To),
-    (Distance =:= 8 * Dir)
+    (Distance =:= ?VERT_SLOPE * Dir)
     orelse (((Distance =:= 7 * Dir) orelse (Distance =:= 9 * Dir))
             andalso enemy_occupied(Game, To))
-    orelse ((Distance =:= 16 * Dir)
+    orelse ((Distance =:= ?VERT_SLOPE * 2 * Dir)
             andalso not pawn_has_moved(Colour, From)
             andalso not vert_move_is_blocked(Game, From, To));
 is_valid_move_for_piece(Game, {piece, rook, _Colour}, From, To) ->
     is_unblocked_lateral(Game, From, To);
+is_valid_move_for_piece(Game, {piece, bishop, _Colour}, From, To) ->
+    is_unblocked_diagonal(Game, From, To);
 is_valid_move_for_piece(_Game, _Piece, _From, _To) ->
     false.
 
@@ -409,47 +418,63 @@ is_unblocked_horiz(Game, From, To) ->
     (rank(From) =:= rank(To)) andalso not horiz_move_is_blocked(Game, From, To).
 
 horiz_move_is_blocked(Game, From, To) ->
-    lists:any(fun(P) -> P =/= empty end, intermediate_squares_horiz(Game, From, To)).
-
-intermediate_squares_horiz(Game, From, To) ->
-    intermediate_squares(Game, From, To, 1).
+    is_blocked(Game, From, To, ?HORIZ_SLOPE).
 
 is_unblocked_vert(Game, From, To) ->
     (file(From) =:= file(To)) andalso not vert_move_is_blocked(Game, From, To).
 
 vert_move_is_blocked(Game, From, To) ->
-    lists:any(fun(P) -> P =/= empty end, intermediate_squares_vert(Game, From, To)).
+    is_blocked(Game, From, To, ?VERT_SLOPE).
 
-intermediate_squares_vert(Game, From, To) ->
-    intermediate_squares(Game, From, To, 8).
+is_blocked(Game, From, To, Slope) ->
+    IntermediateSquares = intermediate_squares(Game, From, To, Slope),
+    lists:any(fun(P) -> P =/= empty end, IntermediateSquares).
 
-intermediate_squares(Game, From, To, MoveDist) ->
-    D = distance(From, To),
-    Step = case D > 0 of true -> MoveDist; false -> -MoveDist end,
-    Squares = lists:seq(square_index(From) + Step, square_index(To) - Step, Step),
-    [piece_at(Game, index_square(I)) || I <- Squares].
+intermediate_squares(Game, From, To, Interval) ->
+    Start = square_index(From),
+    End = square_index(To),
+    Step = case Start < End of
+        true -> abs(Interval);
+        false -> -abs(Interval)
+    end,
+    AllSquareIndices = lists:seq(Start, End, Step),
+    IntermediateSquareIndices = lists:sublist(AllSquareIndices, 2,
+                                              length(AllSquareIndices) - 2),
+    [piece_at(Game, index_square(I)) || I <- IntermediateSquareIndices].
 
-is_diagonal(From, To) ->
-    is_ne_diagonal(From, To)
-    orelse is_se_diagonal(From, To)
-    orelse is_sw_diagonal(From, To)
-    orelse is_nw_diagonal(From, To).
+is_unblocked_diagonal(Game, From, To) ->
+    is_unblocked_ne_diagonal(Game, From, To)
+    orelse is_unblocked_se_diagonal(Game, From, To)
+    orelse is_unblocked_sw_diagonal(Game, From, To)
+    orelse is_unblocked_nw_diagonal(Game, From, To).
 
 is_ne_diagonal(From, To) ->
     D = distance(From, To),
-    (D > 0) andalso (D rem 9 =:= 0).
+    (D > 0) andalso (D rem ?NE_DIAG_SLOPE =:= 0).
+
+is_unblocked_ne_diagonal(Game, From, To) ->
+    is_ne_diagonal(From, To) andalso not is_blocked(Game, From, To, ?NE_DIAG_SLOPE).
 
 is_se_diagonal(From, To) ->
     D = distance(From, To),
-    (D < 0) andalso (D rem 7 =:= 0).
+    (D < 0) andalso (D rem ?SE_DIAG_SLOPE =:= 0).
+
+is_unblocked_se_diagonal(Game, From, To) ->
+    is_se_diagonal(From, To) andalso not is_blocked(Game, From, To, ?SE_DIAG_SLOPE).
 
 is_sw_diagonal(From, To) ->
     D = distance(From, To),
-    (D < 0) andalso (D rem 9 =:= 0).
+    (D < 0) andalso (D rem ?SW_DIAG_SLOPE =:= 0).
+
+is_unblocked_sw_diagonal(Game, From, To) ->
+    is_sw_diagonal(From, To) andalso not is_blocked(Game, From, To, ?SW_DIAG_SLOPE).
 
 is_nw_diagonal(From, To) ->
     D = distance(From, To),
-    (D > 0) andalso (D rem 7 =:= 0).
+    (D > 0) andalso (D rem ?NW_DIAG_SLOPE =:= 0).
+
+is_unblocked_nw_diagonal(Game, From, To) ->
+    is_nw_diagonal(From, To) andalso not is_blocked(Game, From, To, ?NW_DIAG_SLOPE).
 
 current_player_in_check(#game{board=Board} = Game) ->
     Colour = game_current_player(Game),
