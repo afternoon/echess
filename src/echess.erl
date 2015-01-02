@@ -111,27 +111,27 @@ game(Board, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock,
 %% N.B. board coordinates start at the bottom left.
 -spec starting_position() -> board().
 starting_position() ->
-    [wR(),  wN(),  wB(),  wQ(),  wK(),  wB(),  wN(),  wR(),
-     wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),  wP(),
+    [wr(),  wn(),  wb(),  wq(),  wk(),  wb(),  wn(),  wr(),
+     wp(),  wp(),  wp(),  wp(),  wp(),  wp(),  wp(),  wp(),
      empty, empty, empty, empty, empty, empty, empty, empty,
      empty, empty, empty, empty, empty, empty, empty, empty,
      empty, empty, empty, empty, empty, empty, empty, empty,
      empty, empty, empty, empty, empty, empty, empty, empty,
-     bP(),  bP(),  bP(),  bP(),  bP(),  bP(),  bP(),  bP(),
-     bR(),  bN(),  bB(),  bQ(),  bK(),  bB(),  bN(),  bR()].
+     bp(),  bp(),  bp(),  bp(),  bp(),  bp(),  bp(),  bp(),
+     br(),  bn(),  bb(),  bq(),  bk(),  bb(),  bn(),  br()].
 
-wP() -> piece(pawn, white).
-wN() -> piece(knight, white).
-wB() -> piece(bishop, white).
-wR() -> piece(rook, white).
-wQ() -> piece(queen, white).
-wK() -> piece(king, white).
-bP() -> piece(pawn, black).
-bN() -> piece(knight, black).
-bB() -> piece(bishop, black).
-bR() -> piece(rook, black).
-bQ() -> piece(queen, black).
-bK() -> piece(king, black).
+wp() -> piece(pawn, white).
+wn() -> piece(knight, white).
+wb() -> piece(bishop, white).
+wr() -> piece(rook, white).
+wq() -> piece(queen, white).
+wk() -> piece(king, white).
+bp() -> piece(pawn, black).
+bn() -> piece(knight, black).
+bb() -> piece(bishop, black).
+br() -> piece(rook, black).
+bq() -> piece(queen, black).
+bk() -> piece(king, black).
 
 %% @doc Piece constructor.
 -spec piece(piece_class(), colour()) -> piece().
@@ -570,18 +570,18 @@ fen_game(FenBoard, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock,
 %% @doc Convert FEN board representation to our list representation.
 -spec fen_board(string()) -> board().
 fen_board([]) -> [];
-fen_board([$P|T]) -> [wP()|fen_board(T)];
-fen_board([$N|T]) -> [wN()|fen_board(T)];
-fen_board([$B|T]) -> [wB()|fen_board(T)];
-fen_board([$R|T]) -> [wR()|fen_board(T)];
-fen_board([$Q|T]) -> [wQ()|fen_board(T)];
-fen_board([$K|T]) -> [wK()|fen_board(T)];
-fen_board([$p|T]) -> [bP()|fen_board(T)];
-fen_board([$n|T]) -> [bN()|fen_board(T)];
-fen_board([$b|T]) -> [bB()|fen_board(T)];
-fen_board([$r|T]) -> [bR()|fen_board(T)];
-fen_board([$q|T]) -> [bQ()|fen_board(T)];
-fen_board([$k|T]) -> [bK()|fen_board(T)];
+fen_board([$P|T]) -> [wp()|fen_board(T)];
+fen_board([$N|T]) -> [wn()|fen_board(T)];
+fen_board([$B|T]) -> [wb()|fen_board(T)];
+fen_board([$R|T]) -> [wr()|fen_board(T)];
+fen_board([$Q|T]) -> [wq()|fen_board(T)];
+fen_board([$K|T]) -> [wk()|fen_board(T)];
+fen_board([$p|T]) -> [bp()|fen_board(T)];
+fen_board([$n|T]) -> [bn()|fen_board(T)];
+fen_board([$b|T]) -> [bb()|fen_board(T)];
+fen_board([$r|T]) -> [br()|fen_board(T)];
+fen_board([$q|T]) -> [bq()|fen_board(T)];
+fen_board([$k|T]) -> [bk()|fen_board(T)];
 fen_board([$1|T]) -> [empty|fen_board(T)];
 fen_board([$2|T]) -> [empty,empty|fen_board(T)];
 fen_board([$3|T]) -> [empty,empty,empty|fen_board(T)];

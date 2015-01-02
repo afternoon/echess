@@ -6,7 +6,7 @@
 -define(assert_not_legal_move(Game, From, To), ?assertNot(echess:is_legal_move(Game, echess:move(From, To)))).
 
 show_piece_test() ->
-    ?assertEqual($♔, echess:show_piece(echess:bK())).
+    ?assertEqual($♔, echess:show_piece(echess:bk())).
 
 board_ranks_test() ->
     Expected = [lists:seq(A, A+7) || A <- lists:seq(1, 64, 8)],
@@ -32,9 +32,9 @@ square_index_test() ->
 
 piece_at_test() ->
     Game = echess:new(),
-    ?assertEqual(echess:wP(), echess:piece_at(Game, e2)),
-    ?assertEqual(echess:wQ(), echess:piece_at(Game, d1)),
-    ?assertEqual(echess:bK(), echess:piece_at(Game, e8)).
+    ?assertEqual(echess:wp(), echess:piece_at(Game, e2)),
+    ?assertEqual(echess:wq(), echess:piece_at(Game, d1)),
+    ?assertEqual(echess:bk(), echess:piece_at(Game, e8)).
 
 current_player_test() ->
     Game = echess:new(),
@@ -75,20 +75,20 @@ fen_starting_position_test() ->
     ?assertEqual(ExpectedBoard, echess:game_board(Game)).
 
 fen_empty_test() ->
-    ExpectedBoard = [empty || I <- lists:seq(1, 64)],
+    ExpectedBoard = [empty || _ <- lists:seq(1, 64)],
     Game = echess:fen("8/8/8/8/8/8/8/8"),
     ?assertEqual(ExpectedBoard, echess:game_board(Game)).
 
 fen_beppel_game_test() ->
     ExpectedBoard = [
-        empty, empty, empty, echess:wQ(), empty, echess:wR(), echess:wK(), empty,
-        echess:wP(), empty, echess:wP(), empty, empty, echess:wP(), echess:wP(), echess:wP(),
-        empty, empty, empty, echess:wP(), echess:wB(), echess:wN(), empty, empty,
-        empty, empty, empty, empty, echess:wP(), empty, echess:bB(), empty,
-        echess:bQ(), echess:wB(), echess:bP(), empty, empty, empty, empty, empty,
-        empty, empty, echess:bN(), echess:bP(), empty, empty, empty, empty,
-        echess:bP(), echess:wR(), empty, echess:bN(), echess:bP(), echess:bP(), echess:bP(), echess:bP(),
-        echess:wN(), empty, empty, echess:bK(), empty, echess:bB(), empty, echess:bR()
+        empty, empty, empty, echess:wq(), empty, echess:wr(), echess:wk(), empty,
+        echess:wp(), empty, echess:wp(), empty, empty, echess:wp(), echess:wp(), echess:wp(),
+        empty, empty, empty, echess:wp(), echess:wb(), echess:wn(), empty, empty,
+        empty, empty, empty, empty, echess:wp(), empty, echess:bb(), empty,
+        echess:bq(), echess:wb(), echess:bp(), empty, empty, empty, empty, empty,
+        empty, empty, echess:bn(), echess:bp(), empty, empty, empty, empty,
+        echess:bp(), echess:wr(), empty, echess:bn(), echess:bp(), echess:bp(), echess:bp(), echess:bp(),
+        echess:wn(), empty, empty, echess:bk(), empty, echess:bb(), empty, echess:br()
     ],
     Game = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
     ?assertEqual(ExpectedBoard, echess:game_board(Game)).
