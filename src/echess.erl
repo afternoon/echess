@@ -419,15 +419,15 @@ is_unblocked_horiz(Game, From, To) ->
     (rank(From) =:= rank(To)) andalso not horiz_move_is_blocked(Game, From, To).
 
 horiz_move_is_blocked(Game, From, To) ->
-    is_blocked(Game, From, To, ?HORIZ_SLOPE).
+    move_is_blocked(Game, From, To, ?HORIZ_SLOPE).
 
 is_unblocked_vert(Game, From, To) ->
     (file(From) =:= file(To)) andalso not vert_move_is_blocked(Game, From, To).
 
 vert_move_is_blocked(Game, From, To) ->
-    is_blocked(Game, From, To, ?VERT_SLOPE).
+    move_is_blocked(Game, From, To, ?VERT_SLOPE).
 
-is_blocked(Game, From, To, Slope) ->
+move_is_blocked(Game, From, To, Slope) ->
     IntermediateSquares = intermediate_squares(Game, From, To, Slope),
     lists:any(fun(P) -> P =/= empty end, IntermediateSquares).
 
@@ -454,28 +454,28 @@ is_ne_diagonal(From, To) ->
     (D > 0) andalso (D rem ?NE_DIAG_SLOPE =:= 0).
 
 is_unblocked_ne_diagonal(Game, From, To) ->
-    is_ne_diagonal(From, To) andalso not is_blocked(Game, From, To, ?NE_DIAG_SLOPE).
+    is_ne_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?NE_DIAG_SLOPE).
 
 is_se_diagonal(From, To) ->
     D = distance(From, To),
     (D < 0) andalso (D rem ?SE_DIAG_SLOPE =:= 0).
 
 is_unblocked_se_diagonal(Game, From, To) ->
-    is_se_diagonal(From, To) andalso not is_blocked(Game, From, To, ?SE_DIAG_SLOPE).
+    is_se_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?SE_DIAG_SLOPE).
 
 is_sw_diagonal(From, To) ->
     D = distance(From, To),
     (D < 0) andalso (D rem ?SW_DIAG_SLOPE =:= 0).
 
 is_unblocked_sw_diagonal(Game, From, To) ->
-    is_sw_diagonal(From, To) andalso not is_blocked(Game, From, To, ?SW_DIAG_SLOPE).
+    is_sw_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?SW_DIAG_SLOPE).
 
 is_nw_diagonal(From, To) ->
     D = distance(From, To),
     (D > 0) andalso (D rem ?NW_DIAG_SLOPE =:= 0).
 
 is_unblocked_nw_diagonal(Game, From, To) ->
-    is_nw_diagonal(From, To) andalso not is_blocked(Game, From, To, ?NW_DIAG_SLOPE).
+    is_nw_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?NW_DIAG_SLOPE).
 
 current_player_in_check(#game{board=Board} = Game) ->
     Colour = game_current_player(Game),
