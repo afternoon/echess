@@ -395,8 +395,8 @@ is_valid_move_for_piece(Game, {piece, pawn, Colour}, From, To) ->
     Dir = case Colour of white -> 1; black -> -1 end,
     Distance = distance(From, To),
     (Distance =:= ?VERT_SLOPE * Dir)
-    orelse (((Distance =:= NW_DIAG_SLOPE * Dir)
-             orelse (Distance =:= NE_DIAG_SLOPE * Dir))
+    orelse (((Distance =:= ?NW_DIAG_SLOPE * Dir)
+             orelse (Distance =:= ?NE_DIAG_SLOPE * Dir))
             andalso enemy_occupied(Game, To))
     orelse ((Distance =:= ?VERT_SLOPE * 2 * Dir)
             andalso not pawn_has_moved(Colour, From)
@@ -428,10 +428,11 @@ vert_move_is_blocked(Game, From, To) ->
     move_is_blocked(Game, From, To, ?VERT_SLOPE).
 
 move_is_blocked(Game, From, To, Slope) ->
-    IntermediateSquares = intermediate_squares(Game, From, To, Slope),
-    lists:any(fun(P) -> P =/= empty end, IntermediateSquares).
+    IntermediateSquares = intermediate_squares(From, To, Slope),
+    IntermediatePieces = [piece_at(Game, Sq) || Sq <- IntermediateSquares],
+    lists:any(fun(P) -> P =/= empty end, IntermediatePieces).
 
-intermediate_squares(Game, From, To, Interval) ->
+intermediate_squares(From, To, Interval) ->
     Start = square_index(From),
     End = square_index(To),
     Step = case Start < End of
@@ -441,7 +442,7 @@ intermediate_squares(Game, From, To, Interval) ->
     AllSquareIndices = lists:seq(Start, End, Step),
     IntermediateSquareIndices = lists:sublist(AllSquareIndices, 2,
                                               length(AllSquareIndices) - 2),
-    [piece_at(Game, index_square(I)) || I <- IntermediateSquareIndices].
+    [index_square(I) || I <- IntermediateSquareIndices].
 
 is_unblocked_diagonal(Game, From, To) ->
     is_unblocked_ne_diagonal(Game, From, To)
