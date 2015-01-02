@@ -395,7 +395,8 @@ is_valid_move_for_piece(Game, {piece, pawn, Colour}, From, To) ->
     Dir = case Colour of white -> 1; black -> -1 end,
     Distance = distance(From, To),
     (Distance =:= ?VERT_SLOPE * Dir)
-    orelse (((Distance =:= 7 * Dir) orelse (Distance =:= 9 * Dir))
+    orelse (((Distance =:= NW_DIAG_SLOPE * Dir)
+             orelse (Distance =:= NE_DIAG_SLOPE * Dir))
             andalso enemy_occupied(Game, To))
     orelse ((Distance =:= ?VERT_SLOPE * 2 * Dir)
             andalso not pawn_has_moved(Colour, From)
