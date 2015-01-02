@@ -152,7 +152,10 @@ bishop_should_be_able_to_move_diagonally_test() ->
     ?assert_legal_move(Game, d4, a1),
     ?assert_legal_move(Game, d4, a7),
     ?assert_legal_move(Game, d4, h8),
-    ?assert_legal_move(Game, d4, e3),
+    ?assert_legal_move(Game, d4, e3).
+
+bishop_should_not_be_able_to_move_if_blocked_test() ->
+    Game = echess:fen("8/8/8/8/3B4/8/5b2/8"),
     ?assert_not_legal_move(Game, d4, g1).
 
 %% TODO
