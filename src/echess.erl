@@ -429,8 +429,7 @@ vert_move_is_blocked(Game, From, To) ->
 
 move_is_blocked(Game, From, To, Slope) ->
     IntermediateSquares = intermediate_squares(From, To, Slope),
-    IntermediatePieces = [piece_at(Game, Sq) || Sq <- IntermediateSquares],
-    lists:any(fun(P) -> P =/= empty end, IntermediatePieces).
+    lists:any(fun(Sq) -> piece_at(Game, Sq) =/= empty end, IntermediateSquares).
 
 intermediate_squares(From, To, Interval) ->
     Start = square_index(From),
