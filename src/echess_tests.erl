@@ -65,9 +65,13 @@ enemy_occupied_test() ->
     ?assertNot(echess:enemy_occupied(Game, a3)),
     ?assertNot(echess:enemy_occupied(Game, a1)).
 
+is_ne_diagonal_test() ->
+    ?assert(echess:is_ne_diagonal(a1, b2)),
+    ?assertNot(echess:is_ne_diagonal(b2, a1)).
+
 fen_starting_position_test() ->
     ExpectedBoard = echess:starting_position(),
-    Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+    Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"),
     ?assertEqual(ExpectedBoard, echess:game_board(Game)).
 
 fen_beppel_game_test() ->
@@ -85,7 +89,7 @@ fen_beppel_game_test() ->
     ?assertEqual(ExpectedBoard, echess:game_board(Game)).
 
 fen_current_player_test() ->
-    WhiteGame = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+    WhiteGame = echess:fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"),
     ?assertEqual(white, echess:game_current_player(WhiteGame)),
     BlackGame = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
     ?assertEqual(black, echess:game_current_player(BlackGame)).
@@ -100,7 +104,7 @@ pawn_should_push_one_or_two_spaces_test() ->
     ?assert_not_legal_move(Game, e2, e5).
 
 moved_pawn_should_not_be_able_to_double_push_test() ->
-    Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR w KQkq - 0 1"),
+    Game = echess:fen("rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR"),
     ?assert_legal_move(Game, e3, e4),
     ?assert_not_legal_move(Game, e3, e5).
 
@@ -110,30 +114,52 @@ pawn_should_be_able_to_take_test() ->
     BlackGame = echess:fen("rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2"),
     ?assert_legal_move(BlackGame, d5, e4).
 
+pawn_should_not_be_able_to_move_diagonally_unless_taking_test() ->
+    ?assert_not_legal_move(echess:new(), d2, e3).
+
+pawn_should_not_be_able_to_double_push_if_blocked_test() ->
+    Game = echess:fen("rnbqkbnr/ppp1pppp/8/3p4/8/N7/PPPPPPPP/R1BQKBNR w KQkq d6 0 2"),
+    ?assert_not_legal_move(Game, a2, a4).
+
 rook_should_be_able_to_move_laterally_test() ->
-    Game = echess:fen("8/8/8/3R4/4r3/8/8/8 w KQkq - 0 1"),
+    Game = echess:fen("8/8/8/3R4/4r3/8/8/8"),
     ?assert_legal_move(Game, d5, d8),
     ?assert_legal_move(Game, d5, d1),
     ?assert_legal_move(Game, d5, a5),
     ?assert_legal_move(Game, d5, h5),
-    BlackGame = echess:fen("8/8/8/3R4/4r3/8/8/8 b KQkq - 0 1"),
-    ?assert_legal_move(BlackGame, e4, e8).
+    BlackGame = echess:fen("8/8/8/3R4/4r3/8/8/8 b KQkq -"),
+    ?assert_legal_move(BlackGame, e4, e8),
+    HorizGame = echess:fen("R6r/8/8/8/8/8/8/8"),
+    ?assert_legal_move(HorizGame, a8, h8).
 
 rook_should_not_be_able_to_move_diagonally_test() ->
-    Game = echess:fen("8/8/8/3R4/4r3/8/8/8 w KQkq - 0 1"),
+    Game = echess:fen("8/8/8/3R4/4r3/8/8/8"),
     ?assert_not_legal_move(Game, d5, g8),
     ?assert_not_legal_move(Game, e4, d5).
 
 rook_should_not_be_able_to_move_in_knight_pattern_test() ->
-    Game = echess:fen("8/8/8/3R4/4r3/8/8/8 w KQkq - 0 1"),
+    Game = echess:fen("8/8/8/3R4/4r3/8/8/8"),
     ?assert_not_legal_move(Game, d5, f7).
 
+rook_should_not_be_able_to_move_if_blocked_test() ->
+    VertBlockGame = echess:new(),
+    ?assert_not_legal_move(VertBlockGame, a1, a3),
+    HorizBlockGame = echess:fen("R2R3r/8/8/8/8/8/8/8"),
+    ?assert_not_legal_move(HorizBlockGame, a8, h8).
+
+% bishop_should_be_able_to_move_diagonally_test() ->
+%     Game = echess:fen("8/8/8/8/3B4/8/5b2/8"),
+%     ?assert_legal_move(Game, d4, a1),
+%     ?assert_legal_move(Game, d4, a7),
+%     ?assert_legal_move(Game, d4, h8),
+%     ?assert_legal_move(Game, d4, e3),
+%     ?assert_not_legal_move(Game, d4, g1).
+
 %% TODO
-%% - pawn can't move diagonally unless taking
-%% - pawn can take en passant - relies on previous move!
-%% - knight
 %% - bishop
-%% - rook
 %% - queen
 %% - king
-%% - do any pieces block the move?
+%% - knight
+%% - castling
+%% - in check
+%% - pawn can take en passant - relies on previous move!

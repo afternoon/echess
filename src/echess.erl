@@ -133,7 +133,7 @@ piece(Class, Colour) -> {piece, Class, Colour}.
 %% @doc Move constructor.
 -spec move(_From, _To) -> move().
 move(From, To) ->
-    case (From =/= To) and valid_square(From) and valid_square(To) of
+    case (From =/= To) andalso valid_square(From) andalso valid_square(To) of
         true -> {move, From, To};
         false -> badarg
     end.
@@ -340,12 +340,12 @@ file(h8) -> h.
 -spec is_legal_move(game(), move()) -> boolean().
 is_legal_move(Game, {move, From, To}) ->
     valid_square(From)
-    and valid_square(To)
-    and not square_empty(Game, From)
-    and friendly_occupied(Game, From)
-    and not friendly_occupied(Game, To)
-    and is_valid_move(Game, From, To)
-    and not current_player_in_check(Game).
+    andalso valid_square(To)
+    andalso not square_empty(Game, From)
+    andalso friendly_occupied(Game, From)
+    andalso not friendly_occupied(Game, To)
+    andalso is_valid_move(Game, From, To)
+    andalso not current_player_in_check(Game).
 
 -spec valid_square(square()) -> boolean().
 valid_square(Square) ->
@@ -360,7 +360,7 @@ friendly_occupied(Game, Square) ->
 enemy_occupied(Game, Square) ->
     Piece = piece_at(Game, Square),
     Colour = piece_colour(Piece),
-    (Piece =/= empty) and (Colour =/= game_current_player(Game)).
+    (Piece =/= empty) andalso (Colour =/= game_current_player(Game)).
 
 is_valid_move(Game, From, To) ->
     Piece = piece_at(Game, From),
@@ -384,18 +384,17 @@ pawn_has_moved(Colour, Square) ->
 %%
 %% Assumes that both From and To are valid board squares.
 %%
-is_valid_move_for_piece(Game, {piece, pawn, white}, From, To) ->
+is_valid_move_for_piece(Game, {piece, pawn, Colour}, From, To) ->
+    Dir = case Colour of white -> 1; black -> -1 end,
     Distance = distance(From, To),
-    (Distance =:= 8)
-    or (enemy_occupied(Game, To) and ((Distance =:= 7) or (Distance =:= 9)))
-    or (not pawn_has_moved(white, From) and (Distance =:= 16));
-is_valid_move_for_piece(Game, {piece, pawn, black}, From, To) ->
-    Distance = distance(From, To),
-    (Distance =:= -8)
-    or (((Distance =:= -7) or (Distance =:= -9)) and enemy_occupied(Game, To))
-    or ((Distance =:= -16) and not pawn_has_moved(black, From));
-is_valid_move_for_piece(_Game, {piece, rook, _Colour}, From, To) ->
-    is_lateral(From, To);
+    (Distance =:= 8 * Dir)
+    orelse (((Distance =:= 7 * Dir) orelse (Distance =:= 9 * Dir))
+            andalso enemy_occupied(Game, To))
+    orelse ((Distance =:= 16 * Dir)
+            andalso not pawn_has_moved(Colour, From)
+            andalso not vert_move_is_blocked(Game, From, To));
+is_valid_move_for_piece(Game, {piece, rook, _Colour}, From, To) ->
+    is_unblocked_lateral(Game, From, To);
 is_valid_move_for_piece(_Game, _Piece, _From, _To) ->
     false.
 
@@ -403,14 +402,54 @@ is_valid_move_for_piece(_Game, _Piece, _From, _To) ->
 distance(From, To) ->
     square_index(To) - square_index(From).
 
-is_lateral(From, To) ->
-    is_horiz(From, To) or is_vert(From, To).
+is_unblocked_lateral(Game, From, To) ->
+    is_unblocked_horiz(Game, From, To) orelse is_unblocked_vert(Game, From, To).
 
-is_horiz(From, To) ->
-    rank(From) =:= rank(To).
+is_unblocked_horiz(Game, From, To) ->
+    (rank(From) =:= rank(To)) andalso not horiz_move_is_blocked(Game, From, To).
 
-is_vert(From, To) ->
-    file(From) =:= file(To).
+horiz_move_is_blocked(Game, From, To) ->
+    lists:any(fun(P) -> P =/= empty end, intermediate_squares_horiz(Game, From, To)).
+
+intermediate_squares_horiz(Game, From, To) ->
+    intermediate_squares(Game, From, To, 1).
+
+is_unblocked_vert(Game, From, To) ->
+    (file(From) =:= file(To)) andalso not vert_move_is_blocked(Game, From, To).
+
+vert_move_is_blocked(Game, From, To) ->
+    lists:any(fun(P) -> P =/= empty end, intermediate_squares_vert(Game, From, To)).
+
+intermediate_squares_vert(Game, From, To) ->
+    intermediate_squares(Game, From, To, 8).
+
+intermediate_squares(Game, From, To, MoveDist) ->
+    D = distance(From, To),
+    Step = case D > 0 of true -> MoveDist; false -> -MoveDist end,
+    Squares = lists:seq(square_index(From) + Step, square_index(To) - Step, Step),
+    [piece_at(Game, index_square(I)) || I <- Squares].
+
+is_diagonal(From, To) ->
+    is_ne_diagonal(From, To)
+    orelse is_se_diagonal(From, To)
+    orelse is_sw_diagonal(From, To)
+    orelse is_nw_diagonal(From, To).
+
+is_ne_diagonal(From, To) ->
+    D = distance(From, To),
+    (D > 0) andalso (D rem 9 =:= 0).
+
+is_se_diagonal(From, To) ->
+    D = distance(From, To),
+    (D < 0) andalso (D rem 7 =:= 0).
+
+is_sw_diagonal(From, To) ->
+    D = distance(From, To),
+    (D < 0) andalso (D rem 9 =:= 0).
+
+is_nw_diagonal(From, To) ->
+    D = distance(From, To),
+    (D > 0) andalso (D rem 7 =:= 0).
 
 current_player_in_check(#game{board=Board} = Game) ->
     Colour = game_current_player(Game),
@@ -423,9 +462,9 @@ current_player_in_check(#game{board=Board} = Game) ->
 
 is_attacking(_Game, Piece, Target) ->
     (Piece =/= Target)
-    and (piece_colour(Piece) =/= piece_colour(Target))
+    andalso (piece_colour(Piece) =/= piece_colour(Target))
     %% TODO other stuff...
-    and false.
+    andalso false.
 
 %%
 %% Text output
@@ -470,7 +509,30 @@ show_piece(_) -> $?.
 -spec fen(string()) -> game().
 fen(Fen) ->
     FenTokens = string:tokens(Fen, " "),
-    [FenBoard, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock, FullMoveNumber] = FenTokens,
+    case length(FenTokens) of
+        1 ->
+            [FenBoard] = FenTokens,
+            fen_game(FenBoard);
+        4 ->
+            [FenBoard, CurrentPlayer, Castling, EnPassantSquare] = FenTokens,
+            fen_game(FenBoard, CurrentPlayer, Castling, EnPassantSquare);
+        6 ->
+            [FenBoard, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock,
+             FullMoveNumber] = FenTokens,
+            fen_game(FenBoard, CurrentPlayer, Castling, EnPassantSquare,
+                     HalfMoveClock, FullMoveNumber);
+        _ ->
+            badarg
+    end.
+
+fen_game(FenBoard) ->
+    fen_game(FenBoard, "w", "KQkq", "-").
+
+fen_game(FenBoard, CurrentPlayer, Castling, EnPassantSquare) ->
+    fen_game(FenBoard, CurrentPlayer, Castling, EnPassantSquare, "0", "1").
+
+fen_game(FenBoard, CurrentPlayer, Castling, EnPassantSquare, HalfMoveClock,
+         FullMoveNumber) ->
     Board = fen_board(lists:flatten(lists:reverse(string:tokens(FenBoard, "/")))),
     game(Board,
          fen_current_player(CurrentPlayer),
