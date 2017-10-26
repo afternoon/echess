@@ -81,14 +81,14 @@ fen_empty_test() ->
 
 fen_beppel_game_test() ->
     ExpectedBoard = [
-        empty, empty, empty, echess:wq(), empty, echess:wr(), echess:wk(), empty,
-        echess:wp(), empty, echess:wp(), empty, empty, echess:wp(), echess:wp(), echess:wp(),
-        empty, empty, empty, echess:wp(), echess:wb(), echess:wn(), empty, empty,
-        empty, empty, empty, empty, echess:wp(), empty, echess:bb(), empty,
-        echess:bq(), echess:wb(), echess:bp(), empty, empty, empty, empty, empty,
-        empty, empty, echess:bn(), echess:bp(), empty, empty, empty, empty,
-        echess:bp(), echess:wr(), empty, echess:bn(), echess:bp(), echess:bp(), echess:bp(), echess:bp(),
-        echess:wn(), empty, empty, echess:bk(), empty, echess:bb(), empty, echess:br()
+        empty,       empty,       empty,       echess:wq(), empty,       echess:wr(), echess:wk(), empty,
+        echess:wp(), empty,       echess:wp(), empty,       empty,       echess:wp(), echess:wp(), echess:wp(),
+        empty,       empty,       empty,       echess:wp(), echess:wb(), echess:wn(), empty,       empty,
+        empty,       empty,       empty,       empty,       echess:wp(), empty,       echess:bb(), empty,
+        echess:bq(), echess:wb(), echess:bp(), empty,       empty,       empty,       empty,       empty,
+        empty,       empty,       echess:bn(), echess:bp(), empty,       empty,       empty,       empty,
+        echess:bp(), echess:wr(), empty,       echess:bn(), echess:bp(), echess:bp(), echess:bp(), echess:bp(),
+        echess:wn(), empty,       empty,       echess:bk(), empty,       echess:bb(), empty,       echess:br()
     ],
     Game = echess:fen("N2k1b1r/pR1npppp/2np4/qBp5/4P1b1/3PBN2/P1P2PPP/3Q1RK1 b - - 3 13"),
     ?assertEqual(ExpectedBoard, echess:game_board(Game)).
@@ -163,8 +163,38 @@ bishop_should_not_be_able_to_move_if_blocked_test() ->
     Game = echess:fen("8/8/8/8/3B4/8/5b2/8"),
     ?assert_not_legal_move(Game, d4, g1).
 
+queen_should_be_able_to_move_laterally_test() ->
+    Game = echess:fen("8/8/5q2/8/8/3Q4/8/8 w - -"),
+    ?assert_legal_move(Game, d3, d8),
+    ?assert_legal_move(Game, d3, d1),
+    ?assert_legal_move(Game, d3, a3),
+    ?assert_legal_move(Game, d3, h3).
+
+queen_should_be_able_to_move_diagonally_test() ->
+    Game = echess:fen("8/8/5q2/8/8/3Q4/8/8 w - -"),
+    ?assert_legal_move(Game, d3, h7),
+    ?assert_legal_move(Game, d3, f1),
+    ?assert_legal_move(Game, d3, b1),
+    ?assert_legal_move(Game, d3, a6).
+
+queen_cant_just_do_what_the_fuck_she_wants_test() ->
+    Game = echess:fen("8/8/5q2/8/8/3Q4/8/8 w - -"),
+    ?assertNot(echess:is_unblocked_ne_diagonal(Game, d3, h6)),
+    ?assertNot(echess:is_unblocked_se_diagonal(Game, d3, h6)),
+    ?assertNot(echess:is_unblocked_nw_diagonal(Game, d3, h6)),
+    ?assertNot(echess:is_unblocked_sw_diagonal(Game, d3, h6)),
+    ?assert_not_legal_move(Game, d3, h6),
+    ?assert_not_legal_move(Game, d3, h5),
+    ?assert_not_legal_move(Game, d3, h4),
+    ?assert_not_legal_move(Game, d3, a8),
+    ?assert_not_legal_move(Game, d3, f6).
+
+queen_should_not_be_able_to_move_if_blocked_test() ->
+    Game = echess:fen("8/8/5q2/8/4K3/3Q4/8/8 w - -"),
+    ?assert_not_legal_move(Game, d3, h7),
+    ?assert_not_legal_move(Game, d3, e4).
+
 %% TODO
-%% - queen
 %% - king
 %% - knight
 %% - castling
