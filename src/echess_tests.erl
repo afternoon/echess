@@ -2,8 +2,10 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
--define(assert_legal_move(Game, From, To), ?assert(echess:is_legal_move(Game, echess:move(From, To)))).
--define(assert_not_legal_move(Game, From, To), ?assertNot(echess:is_legal_move(Game, echess:move(From, To)))).
+-define(assert_legal_move(Game, From, To),
+        ?assert(echess:is_legal_move(Game, echess:move(From, To)))).
+-define(assert_not_legal_move(Game, From, To),
+        ?assertNot(echess:is_legal_move(Game, echess:move(From, To)))).
 
 show_piece_test() ->
     ?assertEqual($♔, echess:show_piece(echess:bk())).
@@ -194,8 +196,26 @@ queen_should_not_be_able_to_move_if_blocked_test() ->
     ?assert_not_legal_move(Game, d3, h7),
     ?assert_not_legal_move(Game, d3, e4).
 
+king_should_be_able_to_move_one_square_in_any_direction_test() ->
+    Game = echess:fen("8/1k6/8/8/8/8/6K1/8 b - -"),
+    ?assert_legal_move(Game, b7, a8),
+    ?assert_legal_move(Game, b7, b8),
+    ?assert_legal_move(Game, b7, c8),
+    ?assert_legal_move(Game, b7, a7),
+    ?assert_legal_move(Game, b7, c7),
+    ?assert_legal_move(Game, b7, a6),
+    ?assert_legal_move(Game, b7, b6),
+    ?assert_legal_move(Game, b7, c6),
+    Game2 = echess:fen("8/1k6/8/8/8/8/6K1/8 b - -"),
+    ?assert_not_legal_move(Game2, b7, h1),
+    ?assert_not_legal_move(Game2, b7, d6),
+    ?assert_not_legal_move(Game2, b7, a5),
+    ?assert_not_legal_move(Game2, b7, b5),
+    ?assert_not_legal_move(Game2, b7, h4),
+    ?assert_not_legal_move(Game2, b7, a1),
+    ?assert_not_legal_move(Game2, b7, h8).
+
 %% TODO
-%% - king
 %% - knight
 %% - castling
 %% - in check

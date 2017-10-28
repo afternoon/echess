@@ -138,7 +138,7 @@ bk() -> piece(king, black).
 piece(Class, Colour) -> {piece, Class, Colour}.
 
 %% @doc Move constructor.
--spec move(_From, _To) -> move().
+-spec move(square(), square()) -> move().
 move(From, To) ->
     case (From =/= To) andalso valid_square(From) andalso valid_square(To) of
         true -> {move, From, To};
@@ -346,9 +346,7 @@ file(h8) -> h.
 
 -spec is_legal_move(game(), move()) -> boolean().
 is_legal_move(Game, {move, From, To}) ->
-    valid_square(From)
-    andalso valid_square(To)
-    andalso not square_empty(Game, From)
+    not square_empty(Game, From)
     andalso friendly_occupied(Game, From)
     andalso not friendly_occupied(Game, To)
     andalso is_valid_move(Game, From, To)
@@ -373,11 +371,11 @@ is_valid_move(Game, From, To) ->
     Piece = piece_at(Game, From),
     is_valid_move_for_piece(Game, Piece, From, To).
 
-pawn_has_moved(Colour, Square) ->
-    case Colour of
-        white -> rank(Square) =/= 2;
-        black -> rank(Square) =/= 7
-    end.
+pawn_has_moved(white, Square) ->
+    rank(Square) =/= 2;
+
+pawn_has_moved(black, Square) ->
+    rank(Square) =/= 7.
 
 %% @doc Determine if this piece can make this move, e.g. a pawn pushing forward
 %% one or 2 spaces, a knight making an L-shaped move. 2D moves map to 1D moves:
@@ -401,13 +399,30 @@ is_valid_move_for_piece(Game, {piece, pawn, Colour}, From, To) ->
     orelse ((Distance =:= ?VERT_SLOPE * 2 * Dir)
             andalso not pawn_has_moved(Colour, From)
             andalso not vert_move_is_blocked(Game, From, To));
+
 is_valid_move_for_piece(Game, {piece, rook, _Colour}, From, To) ->
     is_unblocked_lateral(Game, From, To);
+
 is_valid_move_for_piece(Game, {piece, bishop, _Colour}, From, To) ->
     is_unblocked_diagonal(Game, From, To);
+
 is_valid_move_for_piece(Game, {piece, queen, _Colour}, From, To) ->
     is_unblocked_lateral(Game, From, To)
     orelse is_unblocked_diagonal(Game, From, To);
+
+is_valid_move_for_piece(Game, {piece, king, _Colour}, From, To) ->
+    Distance = distance(From, To),
+    (Distance =:= 1)
+    orelse (Distance =:= -1)
+    orelse (Distance =:= 7)
+    orelse (Distance =:= -7)
+    orelse (Distance =:= 8)
+    orelse (Distance =:= -8)
+    orelse (Distance =:= 9)
+    orelse (Distance =:= -9)
+    andalso (is_unblocked_lateral(Game, From, To)
+             orelse is_unblocked_diagonal(Game, From, To));
+
 is_valid_move_for_piece(_Game, _Piece, _From, _To) ->
     false.
 
