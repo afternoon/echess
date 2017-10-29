@@ -68,8 +68,8 @@ enemy_occupied_test() ->
     ?assertNot(echess:enemy_occupied(Game, a1)).
 
 is_ne_diagonal_test() ->
-    ?assert(echess:is_ne_diagonal(a1, b2)),
-    ?assertNot(echess:is_ne_diagonal(b2, a1)).
+    ?assert(echess:is_ne_diagonal(echess:move(a1, b2))),
+    ?assertNot(echess:is_ne_diagonal(echess:move(b2, a1))).
 
 fen_starting_position_test() ->
     ExpectedBoard = echess:starting_position(),
@@ -181,10 +181,6 @@ queen_should_be_able_to_move_diagonally_test() ->
 
 queen_cant_just_do_what_the_fuck_she_wants_test() ->
     Game = echess:fen("8/8/5q2/8/8/3Q4/8/8 w - -"),
-    ?assertNot(echess:is_unblocked_ne_diagonal(Game, d3, h6)),
-    ?assertNot(echess:is_unblocked_se_diagonal(Game, d3, h6)),
-    ?assertNot(echess:is_unblocked_nw_diagonal(Game, d3, h6)),
-    ?assertNot(echess:is_unblocked_sw_diagonal(Game, d3, h6)),
     ?assert_not_legal_move(Game, d3, h6),
     ?assert_not_legal_move(Game, d3, h5),
     ?assert_not_legal_move(Game, d3, h4),
@@ -214,6 +210,13 @@ king_should_be_able_to_move_one_square_in_any_direction_test() ->
     ?assert_not_legal_move(Game2, b7, h4),
     ?assert_not_legal_move(Game2, b7, a1),
     ?assert_not_legal_move(Game2, b7, h8).
+
+king_should_not_be_able_to_move_into_check_test() ->
+    Game = echess:fen("4R3/1k6/8/1P2Q3/8/8/6K1/8 b - -"),
+    ?assert_not_legal_move(Game, b7, b8),
+    ?assert_not_legal_move(Game, b7, a6),
+    ?assert_not_legal_move(Game, b7, c6),
+    ?assert_not_legal_move(Game, b7, c7).
 
 %% TODO
 %% - knight

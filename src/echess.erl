@@ -12,8 +12,10 @@
                   a7, b7, c7, d7, e7, f7, g7, h7,
                   a8, b8, c8, d8, e8, f8, g8, h8]).
 
--define(HORIZ_SLOPE, 1).
--define(VERT_SLOPE, 8).
+-define(NORTH_SLOPE, 8).
+-define(EAST_SLOPE, 1).
+-define(SOUTH_SLOPE, -8).
+-define(WEST_SLOPE, -1).
 -define(NE_DIAG_SLOPE, 9).
 -define(SE_DIAG_SLOPE, -7).
 -define(SW_DIAG_SLOPE, -9).
@@ -345,12 +347,15 @@ file(h8) -> h.
 %%
 
 -spec is_legal_move(game(), move()) -> boolean().
-is_legal_move(Game, {move, From, To}) ->
+is_legal_move(_Game, badarg) ->
+    false;
+
+is_legal_move(Game, {move, From, To} = Move) ->
     not square_empty(Game, From)
     andalso friendly_occupied(Game, From)
-    andalso not friendly_occupied(Game, To)
-    andalso is_valid_move(Game, From, To)
-    andalso not current_player_in_check(Game).
+    andalso (not friendly_occupied(Game, To))
+    andalso is_valid_move(Game, Move)
+    andalso player_not_in_check_or_moving_out(Game, Move).
 
 -spec valid_square(square()) -> boolean().
 valid_square(Square) ->
@@ -367,9 +372,9 @@ enemy_occupied(Game, Square) ->
     Colour = piece_colour(Piece),
     (Piece =/= empty) andalso (Colour =/= game_current_player(Game)).
 
-is_valid_move(Game, From, To) ->
+is_valid_move(Game, {move, From, _To} = Move) ->
     Piece = piece_at(Game, From),
-    is_valid_move_for_piece(Game, Piece, From, To).
+    is_valid_move_for_piece(Game, Piece, Move).
 
 pawn_has_moved(white, Square) ->
     rank(Square) =/= 2;
@@ -389,67 +394,71 @@ pawn_has_moved(black, Square) ->
 %%
 %% Assumes that both From and To are valid board squares.
 %%
-is_valid_move_for_piece(Game, {piece, pawn, Colour}, From, To) ->
+is_valid_move_for_piece(_Game, _Piece, badarg) ->
+    false;
+
+is_valid_move_for_piece(Game, {piece, pawn, Colour}, {move, From, To} = Move) ->
     Dir = case Colour of white -> 1; black -> -1 end,
-    Distance = distance(From, To),
-    (Distance =:= ?VERT_SLOPE * Dir)
+    Distance = distance(Move),
+    (Distance =:= ?NORTH_SLOPE * Dir)
     orelse (((Distance =:= ?NW_DIAG_SLOPE * Dir)
              orelse (Distance =:= ?NE_DIAG_SLOPE * Dir))
             andalso enemy_occupied(Game, To))
-    orelse ((Distance =:= ?VERT_SLOPE * 2 * Dir)
+    orelse ((Distance =:= ?NORTH_SLOPE * 2 * Dir)
             andalso not pawn_has_moved(Colour, From)
-            andalso not vert_move_is_blocked(Game, From, To));
+            andalso not vert_move_is_blocked(Game, Move));
 
-is_valid_move_for_piece(Game, {piece, rook, _Colour}, From, To) ->
-    is_unblocked_lateral(Game, From, To);
+is_valid_move_for_piece(Game, {piece, rook, _Colour}, Move) ->
+    is_unblocked_lateral(Game, Move);
 
-is_valid_move_for_piece(Game, {piece, bishop, _Colour}, From, To) ->
-    is_unblocked_diagonal(Game, From, To);
+is_valid_move_for_piece(Game, {piece, bishop, _Colour}, Move) ->
+    is_unblocked_diagonal(Game, Move);
 
-is_valid_move_for_piece(Game, {piece, queen, _Colour}, From, To) ->
-    is_unblocked_lateral(Game, From, To)
-    orelse is_unblocked_diagonal(Game, From, To);
+is_valid_move_for_piece(Game, {piece, queen, _Colour}, Move) ->
+    is_unblocked_lateral(Game, Move)
+    orelse is_unblocked_diagonal(Game, Move);
 
-is_valid_move_for_piece(Game, {piece, king, _Colour}, From, To) ->
-    Distance = distance(From, To),
-    (Distance =:= 1)
-    orelse (Distance =:= -1)
-    orelse (Distance =:= 7)
-    orelse (Distance =:= -7)
-    orelse (Distance =:= 8)
-    orelse (Distance =:= -8)
-    orelse (Distance =:= 9)
-    orelse (Distance =:= -9)
-    andalso (is_unblocked_lateral(Game, From, To)
-             orelse is_unblocked_diagonal(Game, From, To));
+is_valid_move_for_piece(Game, {piece, king, _Colour}, {move, _From, To} = Move) ->
+    Distance = distance(Move),
+    ((Distance =:= ?NORTH_SLOPE)
+     orelse (Distance =:= ?NE_DIAG_SLOPE)
+     orelse (Distance =:= ?EAST_SLOPE)
+     orelse (Distance =:= ?SE_DIAG_SLOPE)
+     orelse (Distance =:= ?SOUTH_SLOPE)
+     orelse (Distance =:= ?SW_DIAG_SLOPE)
+     orelse (Distance =:= ?WEST_SLOPE)
+     orelse (Distance =:= ?NW_DIAG_SLOPE))
+    andalso not would_put_king_in_check(Game, To);
 
-is_valid_move_for_piece(_Game, _Piece, _From, _To) ->
+is_valid_move_for_piece(_Game, _Piece, _Move) ->
     false.
 
--spec distance(square(), square()) -> integer().
-distance(From, To) ->
+-spec distance(move()) -> integer().
+distance({move, From, To}) ->
     square_index(To) - square_index(From).
 
-is_unblocked_lateral(Game, From, To) ->
-    is_unblocked_horiz(Game, From, To) orelse is_unblocked_vert(Game, From, To).
+is_unblocked_lateral(Game, Move) ->
+    is_unblocked_horiz(Game, Move) orelse is_unblocked_vert(Game, Move).
 
-is_unblocked_horiz(Game, From, To) ->
-    (rank(From) =:= rank(To)) andalso not horiz_move_is_blocked(Game, From, To).
+is_unblocked_horiz(Game, {move, From, To} = Move) ->
+    (rank(From) =:= rank(To)) andalso not horiz_move_is_blocked(Game, Move).
 
-horiz_move_is_blocked(Game, From, To) ->
-    move_is_blocked(Game, From, To, ?HORIZ_SLOPE).
+horiz_move_is_blocked(Game, Move) ->
+    move_is_blocked(Game, Move, ?EAST_SLOPE)
+    orelse move_is_blocked(Game, Move, ?WEST_SLOPE).
 
-is_unblocked_vert(Game, From, To) ->
-    (file(From) =:= file(To)) andalso not vert_move_is_blocked(Game, From, To).
+is_unblocked_vert(Game, {move, From, To} = Move) ->
+    (file(From) =:= file(To)) andalso not vert_move_is_blocked(Game, Move).
 
-vert_move_is_blocked(Game, From, To) ->
-    move_is_blocked(Game, From, To, ?VERT_SLOPE).
+vert_move_is_blocked(Game, Move) ->
+    move_is_blocked(Game, Move, ?NORTH_SLOPE)
+    orelse move_is_blocked(Game, Move, ?SOUTH_SLOPE).
 
-move_is_blocked(Game, From, To, Slope) ->
-    IntermediateSquares = intermediate_squares(From, To, Slope),
+move_is_blocked(Game, Move, Slope) ->
+    IntermediateSquares = intermediate_squares(Move, Slope),
     lists:any(fun(Sq) -> piece_at(Game, Sq) =/= empty end, IntermediateSquares).
 
-intermediate_squares(From, To, Interval) ->
+intermediate_squares({move, From, To}, Interval) ->
     Start = square_index(From),
     End = square_index(To),
     Step = case Start < End of
@@ -461,66 +470,79 @@ intermediate_squares(From, To, Interval) ->
                                               length(AllSquareIndices) - 2),
     [index_square(I) || I <- IntermediateSquareIndices].
 
-is_unblocked_diagonal(Game, From, To) ->
-    is_unblocked_ne_diagonal(Game, From, To)
-    orelse is_unblocked_se_diagonal(Game, From, To)
-    orelse is_unblocked_sw_diagonal(Game, From, To)
-    orelse is_unblocked_nw_diagonal(Game, From, To).
+is_unblocked_diagonal(Game, Move) ->
+    is_unblocked_ne_diagonal(Game, Move)
+    orelse is_unblocked_se_diagonal(Game, Move)
+    orelse is_unblocked_sw_diagonal(Game, Move)
+    orelse is_unblocked_nw_diagonal(Game, Move).
 
-is_ne_diagonal(From, To) ->
-    D = distance(From, To),
+is_ne_diagonal({move, From, To} = Move) ->
+    D = distance(Move),
     (D > 0)
     andalso (D rem ?NE_DIAG_SLOPE =:= 0)
     andalso (file(To) > file(From))
     andalso (rank(To) > rank(From)).
 
-is_unblocked_ne_diagonal(Game, From, To) ->
-    is_ne_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?NE_DIAG_SLOPE).
+is_unblocked_ne_diagonal(Game, Move) ->
+    is_ne_diagonal(Move) andalso not move_is_blocked(Game, Move, ?NE_DIAG_SLOPE).
 
-is_se_diagonal(From, To) ->
-    D = distance(From, To),
+is_se_diagonal({move, From, To} = Move) ->
+    D = distance(Move),
     (D < 0)
     andalso (D rem ?SE_DIAG_SLOPE =:= 0)
     andalso (file(To) > file(From))
     andalso (rank(To) < rank(From)).
 
-is_unblocked_se_diagonal(Game, From, To) ->
-    is_se_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?SE_DIAG_SLOPE).
+is_unblocked_se_diagonal(Game, Move) ->
+    is_se_diagonal(Move) andalso not move_is_blocked(Game, Move, ?SE_DIAG_SLOPE).
 
-is_sw_diagonal(From, To) ->
-    D = distance(From, To),
+is_sw_diagonal({move, From, To} = Move) ->
+    D = distance(Move),
     (D < 0)
     andalso (D rem ?SW_DIAG_SLOPE =:= 0)
     andalso (file(To) < file(From))
     andalso (rank(To) < rank(From)).
 
-is_unblocked_sw_diagonal(Game, From, To) ->
-    is_sw_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?SW_DIAG_SLOPE).
+is_unblocked_sw_diagonal(Game, Move) ->
+    is_sw_diagonal(Move) andalso not move_is_blocked(Game, Move, ?SW_DIAG_SLOPE).
 
-is_nw_diagonal(From, To) ->
-    D = distance(From, To),
+is_nw_diagonal({move, From, To} = Move) ->
+    D = distance(Move),
     (D > 0)
     andalso (D rem ?NW_DIAG_SLOPE =:= 0)
     andalso (file(To) < file(From))
     andalso (rank(To) > rank(From)).
 
-is_unblocked_nw_diagonal(Game, From, To) ->
-    is_nw_diagonal(From, To) andalso not move_is_blocked(Game, From, To, ?NW_DIAG_SLOPE).
+is_unblocked_nw_diagonal(Game, Move) ->
+    is_nw_diagonal(Move) andalso not move_is_blocked(Game, Move, ?NW_DIAG_SLOPE).
 
-current_player_in_check(#game{board=Board} = Game) ->
-    Colour = game_current_player(Game),
-    case piece_square(Game, piece(king, Colour)) of
-        not_found ->
-            false;
-        KingSquare ->
-            lists:any(fun(P) -> is_attacking(Game, P, KingSquare) end, Board)
-    end.
+would_put_king_in_check(#game{board=Board} = Game, KingSquare) ->
+    lists:any(fun(P) -> is_attacking(Game, P, KingSquare) end, Board).
 
-is_attacking(_Game, Piece, Target) ->
+is_attacking(Game, Piece, Target) ->
     (Piece =/= Target)
     andalso (piece_colour(Piece) =/= piece_colour(Target))
-    %% TODO other stuff...
-    andalso false.
+    andalso is_valid_move(Game, move(Piece, Target)).
+
+player_not_in_check_or_moving_out(_Game, _Move) ->
+    true.
+    % TODO
+    % case player_in_check(Game) of
+    %     true -> move_escapes_check(Game, Move);
+    %     false -> true
+    % end.
+
+% player_in_check(#game{board=Board} = Game) ->
+%     Colour = game_current_player(Game),
+%     case piece_square(Game, piece(king, Colour)) of
+%         not_found ->
+%             false;
+%         KingSquare ->
+%             lists:any(fun(P) -> is_attacking(Game, P, KingSquare) end, Board)
+%     end.
+
+% move_escapes_check(_Game, _Move) ->
+%     true.
 
 %%
 %% Text output
